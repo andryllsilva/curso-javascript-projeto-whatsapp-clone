@@ -4,7 +4,7 @@ class WhatsAppController {
 
     this.elementsPrototype();
     this.loadElements();
-    this.initEevents();
+    this.initEvents();
   }
 
   loadElements() {
@@ -33,8 +33,8 @@ class WhatsAppController {
     Element.prototype.on = function (events, fn) {
       events.split(' ').forEach(event => {
         this.addEventListener(event, fn);
-        return this;
       })
+      return this;
     }
 
     Element.prototype.css = function (styles) {
@@ -55,7 +55,7 @@ class WhatsAppController {
       return this;
     }
 
-    Element.prototype.removeClass = function (name) {
+    Element.prototype.toggleClass = function (name) {
       this.classList.toggle(name);
       return this;
     }
@@ -80,7 +80,7 @@ class WhatsAppController {
 
   }
 
-  initEevents() {
+  initEvents() {
 
     this.el.myPhoto.on('click', e => {
 
@@ -112,6 +112,10 @@ class WhatsAppController {
       this.el.inputProfilePhoto.click();
     })
 
+    this.el.btnSavePanelEditProfile.on('click', e => {
+      console.log(this.el.inputNamePanelEditProfile.innerHTML)
+    })
+
     this.el.inputNamePanelEditProfile.on('keypress', e => {
       if (e.key === 'Enter') {
 
@@ -119,10 +123,6 @@ class WhatsAppController {
         this.el.btnSavePanelEditProfile.click();
 
       }
-    })
-
-    this.el.btnSavePanelEditProfile.on('click', e => {
-      console.log(this.el.inputNamePanelEditProfile.innerHTML)
     })
 
     this.el.formPanelAddContact.on('submit', e => {
@@ -134,11 +134,11 @@ class WhatsAppController {
     this.el.contactsMessagesList.querySelectorAll('.contact-item').forEach(item => {
 
       item.on('click', e => {
-
-        this.el.home.hide();
         this.el.main.css({
           display: 'flex'
         })
+        this.el.home.hide();
+        
       })
     })
 
@@ -149,26 +149,78 @@ class WhatsAppController {
       document.addEventListener('click', this.closeMenuAttach.bind(this))
     })
 
+
     this.el.btnAttachPhoto.on('click', e => {
-      console.log('photo')
+      this.el.inputPhoto.click();
     })
 
+    this.el.inputPhoto.on('change', e => {
+      console.log(this.el.inputPhoto.files);
+
+      [...this.el.inputPhoto.files].forEach(file => {
+        console.log(file)
+      });
+    })
+
+
     this.el.btnAttachCamera.on('click', e => {
-      console.log('camera')
+      this.closeAllMainPanel()
+      this.el.panelCamera.addClass('open');
+      this.el.panelCamera.css({
+        height: 'calc(120% - 120px)'
+      })
+    })
+
+    this.el.btnClosePanelCamera.on('click', e => {
+      this.closeAllMainPanel()
+      this.el.panelMessagesContainer.show();
+    })
+
+    this.el.btnTakePicture.on('click', e => {
+      console.log('take picture')
+    })
+
+    this.el.btnAttachPhoto.on('click', e => {
+      this.el.inputPhoto.click();
     })
 
     this.el.btnAttachDocument.on('click', e => {
-      console.log('document')
+      this.closeAllMainPanel()
+      this.el.panelDocumentPreview.addClass('open')
+      this.el.panelDocumentPreview.css({
+        height: 'calc(120% - 120px)'
+      })
+    })
+
+    this.el.btnClosePanelDocumentPreview.on('click', e => {
+
+      this.closeAllMainPanel()
+      this.el.panelMessagesContainer.show();
+
+    })
+
+    this.el.btnSendDocument.on('click', e => {
+      console.log('send document')
     })
 
     this.el.btnAttachContact.on('click', e => {
-      console.log('contact')
+      this.el.modalContacts.show();
+    })
+
+    this.el.btnCloseModalContacts.on('click', e => {
+      this.el.modalContacts.hide();
     })
 
   }
 
+  closeAllMainPanel(){
+    this.el.panelMessagesContainer.hide();
+    this.el.panelDocumentPreview.removeClass('open');
+    this.el.panelCamera.removeClass('open');
+  }
+
   closeMenuAttach(e) {
-    
+
     document.removeEventListener('click', this.closeMenuAttach)
     this.el.menuAttach.removeClass('open')
   }
