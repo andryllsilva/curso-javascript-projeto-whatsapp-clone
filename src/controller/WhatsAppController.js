@@ -138,7 +138,7 @@ class WhatsAppController {
           display: 'flex'
         })
         this.el.home.hide();
-        
+
       })
     })
 
@@ -180,10 +180,6 @@ class WhatsAppController {
       console.log('take picture')
     })
 
-    this.el.btnAttachPhoto.on('click', e => {
-      this.el.inputPhoto.click();
-    })
-
     this.el.btnAttachDocument.on('click', e => {
       this.closeAllMainPanel()
       this.el.panelDocumentPreview.addClass('open')
@@ -211,9 +207,40 @@ class WhatsAppController {
       this.el.modalContacts.hide();
     })
 
+    this.el.btnSendMicrophone.on('click', e => {
+
+      this.el.recordMicrophone.show()
+      this.el.btnSendMicrophone.hide()
+      this.startRecordMicrophoneTime()
+    })
+
+    this.el.btnCancelMicrophone.on('click', e => {
+      this.closeRecordMicrophone()
+    })
+
+    this.el.btnFinishMicrophone.on('click', e => {
+      this.closeRecordMicrophone()
+    })
+
   }
 
-  closeAllMainPanel(){
+  startRecordMicrophoneTime(){
+
+    let start = Date.now()
+
+    this._recordMicrophoneInterval = setInterval(() => {
+
+      this.el.recordMicrophoneTimer.innerHTML = Date.now() - start
+    }, 100)
+  }
+
+  closeRecordMicrophone() {
+    this.el.recordMicrophone.hide();
+    this.el.btnSendMicrophone.show();
+    clearInterval(this._recordMicrophoneInterval);
+  }
+
+  closeAllMainPanel() {
     this.el.panelMessagesContainer.hide();
     this.el.panelDocumentPreview.removeClass('open');
     this.el.panelCamera.removeClass('open');
