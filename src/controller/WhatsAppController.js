@@ -1,5 +1,7 @@
 import { Format } from './../util/Format';
 import { CameraController } from './CameraController';
+import { DocumentPreviewController } from './DocumentPreviewController';
+
 
 export class WhatsAppController {
 
@@ -213,6 +215,23 @@ export class WhatsAppController {
       this.el.panelDocumentPreview.css({
         height: 'calc(120% - 120px)'
       })
+      this.el.inputDocument.click();
+    })
+
+    this.el.inputDocument.on('change', e => {
+
+      if(this.el.inputDocument.files.length){
+        let file = this.el.inputDocument.files[0]
+        this._documentPreviewController = new DocumentPreviewController(file);
+        this._documentPreviewController.getPreviewData().then(data => {
+          console.log('ok',data)
+          
+        }).catch(err => {
+          console.error('erro', err)
+        })
+      }
+
+
     })
 
     this.el.btnClosePanelDocumentPreview.on('click', e => {
