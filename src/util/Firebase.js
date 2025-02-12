@@ -19,23 +19,23 @@ export class Firebase {
 
   init() {
 
-    if(!this.initialized){
+    if(!window._initializedFirebase){
       firebase.initializeApp(this._config)
 
       firebase.firestore().settings({
         timestampsInSnapshots: true
       })
 
-      this.initialized = true;
+      window._initializedFirebase= true;
     }
   }
 
   static db(){
-    return Firebase.firestore();
+    return firebase.firestore();
   }
 
   static hd(){
-    return Firebase.storage()
+    return firebase.storage()
   }
 
   initAuth(){
