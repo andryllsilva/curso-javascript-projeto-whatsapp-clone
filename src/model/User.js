@@ -20,8 +20,7 @@ export class User extends Model{
   }
 
   get email(){
-
-    return this._data.name;
+    return this._data.email;
   }
 
   set email(value){
@@ -29,7 +28,6 @@ export class User extends Model{
   }
 
   get photo(){
-
     return this._data.photo;
   }
 
@@ -51,11 +49,12 @@ export class User extends Model{
 
   save(){
 
+
     return User.findByEmail(this.email).set(this.toJSON());
   }
 
   static getRef(){
-    console.log(Firebase.db())
+
     return Firebase.db().collection('/users')
   }
 
@@ -65,9 +64,26 @@ export class User extends Model{
     return User.getRef().doc(email)
   }
 
+  static getContactRef(id){
+
+  }
+
   addContact(contact){
 
-    return User.getRef().doc(this.email).collection('contacts').doc(btoa(contact.email)).set(contact.toJSON());
+    console.log(this.email)
+    return User.getRef().doc(this.email)
+    .collection('contacts')
+    .doc(btoa(contact.email))
+    .set(contact.toJSON());
 
+  }
+
+  getContacts(){
+
+    return new Promise((s, f) => {
+
+      User.getRef().doc(this.email)
+      .collection('contacts')
+    })
   }
 }
