@@ -1,41 +1,41 @@
 import { Firebase } from './../util/Firebase'
 import { Model } from './Model';
 
-export class User extends Model{
+export class User extends Model {
 
-  constructor(id){
-    
+  constructor(id) {
+
     super();
-    
-    if(id) this.getById(id);
+
+    if (id) this.getById(id);
   }
 
-  get name(){
+  get name() {
 
     return this._data.name;
   }
 
-  set name(value){
+  set name(value) {
     this._data.name = value;
   }
 
-  get email(){
+  get email() {
     return this._data.email;
   }
 
-  set email(value){
+  set email(value) {
     this._data.email = value;
   }
 
-  get photo(){
+  get photo() {
     return this._data.photo;
   }
 
-  set photo(value){
+  set photo(value) {
     this._data.photo = value;
   }
 
-  getById(id){
+  getById(id) {
 
     return new Promise((s, f) => {
 
@@ -47,43 +47,54 @@ export class User extends Model{
     })
   }
 
-  save(){
+  save() {
 
 
     return User.findByEmail(this.email).set(this.toJSON());
   }
 
-  static getRef(){
+  static getRef() {
 
     return Firebase.db().collection('/users')
   }
 
-  static findByEmail(email){
+  static findByEmail(email) {
 
-    
+
     return User.getRef().doc(email)
   }
 
-  static getContactRef(id){
+  static getContactsRef(id) {
+    return User.getRef().doc(id)
+      .collection('contacts')
+  }
+
+  addContact(contact) {
+
+    return User.getContactsRef().doc(btoa(contact.email))
+      .set(contact.toJSON());
 
   }
 
-  addContact(contact){
-
-    console.log(this.email)
-    return User.getRef().doc(this.email)
-    .collection('contacts')
-    .doc(btoa(contact.email))
-    .set(contact.toJSON());
-
-  }
-
-  getContacts(){
+  getContacts() {
 
     return new Promise((s, f) => {
 
-      User.getRef().doc(this.email)
-      .collection('contacts')
+      User.getRef().getContactsRef().onSnapshot(docs => {
+
+        let contacts = [];
+        docs.forEach(doc => {
+          let data = doc.data();
+
+          data.id = doc.id;
+
+          contacts.push(data)
+        })
+
+        this.trigger('contactschange', docs)
+
+        s(contacts)
+      })
     })
   }
 }
