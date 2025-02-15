@@ -5,6 +5,7 @@ import { DocumentPreviewController } from './DocumentPreviewController';
 import { Firebase } from './../util/Firebase'
 import { User } from './../model/User'
 import { Chat } from './../model/Chat'
+import { Message} from './../model/Message'
 
 
 export class WhatsAppController {
@@ -18,55 +19,55 @@ export class WhatsAppController {
     this.initEvents();
   }
 
-  initAuth(){
+  initAuth() {
     this._firebase.initAuth()
-    .then(response => {
+      .then(response => {
 
-      this._user = new User(response.user.email);
+        this._user = new User(response.user.email);
 
-      this._user.on('datachange', data => {
+        this._user.on('datachange', data => {
 
-        document.querySelector('title').innerHTML = data.name + '- WhatsApp Clone'
+          document.querySelector('title').innerHTML = data.name + '- WhatsApp Clone'
 
-        this.el.inputNamePanelEditProfile.innerHTML = data.name;
+          this.el.inputNamePanelEditProfile.innerHTML = data.name;
 
-        if(data.photo) {
+          if (data.photo) {
 
-          let photo = this.el.imgPanelEditProfile;
-          photo.src = data.photo;
-          photo.show();
-          this.el.imgDefaultPanelEditProfile.hide();
+            let photo = this.el.imgPanelEditProfile;
+            photo.src = data.photo;
+            photo.show();
+            this.el.imgDefaultPanelEditProfile.hide();
 
-          let photoPerfil = this.el.myPhoto.querySelector('img');
-          photoPerfil.src = data.photo;
-          photoPerfil.show()
+            let photoPerfil = this.el.myPhoto.querySelector('img');
+            photoPerfil.src = data.photo;
+            photoPerfil.show()
 
-        }
+          }
 
-        this.initContacts();
+          this.initContacts();
+        })
+
+        this._user.email = response.user.email;
+        this._user.name = response.user.displayName;
+        this._user.photo = response.user.photoURL;
+
+        this._user.save().then(() => {
+          this.el.appContent.css({
+            display: 'flex'
+          });
+        })
+
+      }).catch(err => {
+        console.error(err)
       })
-
-      this._user.email = response.user.email;
-      this._user.name = response.user.displayName;
-      this._user.photo = response.user.photoURL;
-
-      this._user.save().then(() => {
-        this.el.appContent.css({
-          display: 'flex'
-        });
-      })
-
-    }).catch(err => {
-      console.error(err)
-    })
   }
 
-  initContacts(){
+  initContacts() {
 
-    
+
 
     this._user.on('contactschange', docs => {
-      
+
       this.el.contactsMessagesList.innerHTML = '';
 
       docs.forEach(doc => {
@@ -75,8 +76,8 @@ export class WhatsAppController {
 
         let div = document.createElement('div');
 
-    div. className = 'contact-item'
-    div.innerHTML = `
+        div.className = 'contact-item'
+        div.innerHTML = `
     <div class="contact-item">
       <div class="dIyEr">
           <div class="_1WliW" style="height: 49px; width: 49px;">
@@ -128,40 +129,47 @@ export class WhatsAppController {
   </div>
     `;
 
-    if(contact.photo){
-      let img = div.querySelector('.photo')
-      img.src = contact.photo
-      img.show();
-    }
+        if (contact.photo) {
+          let img = div.querySelector('.photo')
+          img.src = contact.photo
+          img.show();
+        }
 
 
-    div.on('click', e => {
-      
+        div.on('click', e => {
 
-      this.el.activeName.innerHTML = contact.name;
-      this.el.activeStatus.innerHTML = contact.status;
+          this.setActiveChat(contact)
 
-      if(contact.photo) {
-        let img = this.el.activePhoto;
-        img.src = contact.photo;
-        img.show();
-      }
+        })
 
-      this.el.home.hide();
-      this.el.main.css({
-        display: 'flex'
-      })
-    })
 
-    
 
-    this.el.contactsMessagesList.appendChild(div)
+        this.el.contactsMessagesList.appendChild(div)
 
 
       })
     })
 
     this._user.getContacts();
+  }
+
+  setActiveChat(contact) {
+
+    this._contactActive = contact;
+
+    this.el.activeName.innerHTML = contact.name;
+    this.el.activeStatus.innerHTML = contact.status;
+
+    if (contact.photo) {
+      let img = this.el.activePhoto;
+      img.src = contact.photo;
+      img.show();
+    }
+
+    this.el.home.hide();
+    this.el.main.css({
+      display: 'flex'
+    })
   }
 
   loadElements() {
@@ -280,7 +288,7 @@ export class WhatsAppController {
         this.el.btnSavePanelEditProfile.disabled = false;
 
       });
-  
+
     })
 
     this.el.inputNamePanelEditProfile.on('keypress', e => {
@@ -296,14 +304,14 @@ export class WhatsAppController {
       e.preventDefault();
 
       let formData = new FormData(this.el.formPanelAddContact);
-    
+
       let contact = new User(formData.get('email'));
 
       contact.on('datachange', data => {
 
-        if(data.name) {
+        if (data.name) {
           Chat.createIfNotExists(this._user.email, contact.email).then(chat => {
-           
+
             console.log(chat.id)
             contact.chatId = chat.id;
 
@@ -317,8 +325,8 @@ export class WhatsAppController {
               console.info('Contato foi adicionado')
             })
           })
-          
-        }else {
+
+        } else {
           console.error('Usuário não foi encontrado')
         }
       })
@@ -385,7 +393,7 @@ export class WhatsAppController {
 
     this.el.btnSendPicture.on('click', e => {
 
-      console.log(this.el.pictureCamera.src)
+      
     })
 
     this.el.btnReshootPanelCamera.on('click', e => {
@@ -521,7 +529,9 @@ export class WhatsAppController {
     })
 
     this.el.btnSend.on('click', e => {
-      console.log(this.el.inputText.innerHTML)
+      Message.send(this._contactActive.chatId, this._user.email, 'text', this.el.inputText.innerHTML)
+      this.el.inputText.innerHTML = ''
+      this.el.panelEmojis.removeClass('open')
     })
 
     this.el.btnEmojis.on('click', e => {
@@ -573,7 +583,7 @@ export class WhatsAppController {
   closeRecordMicrophone() {
     this.el.recordMicrophone.hide();
     this.el.btnSendMicrophone.show();
-    
+
   }
 
   closeAllMainPanel() {
