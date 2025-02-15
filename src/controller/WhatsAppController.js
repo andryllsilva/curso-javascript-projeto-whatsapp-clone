@@ -198,6 +198,7 @@ export class WhatsAppController {
         message.fromJSON(data);
 
         let me = (data.from === this._user.email)
+        let view = message.getViewElement(me)
 
 
         if (!this.el.panelMessagesContainer.querySelector('#_' + data.id)) {
@@ -213,24 +214,45 @@ export class WhatsAppController {
             })
           }
 
-          let view = message.getViewElement(me)
-
           this.el.panelMessagesContainer.appendChild(view)
 
 
         } else {
 
-          let view = message.getViewElement(me)
-          this.el.panelMessagesContainer.querySelector('#_' + data.id).innerHTML = view.innerHTML;
+          let parent = this.el.panelMessagesContainer.querySelector('#_' + data.id).parentNode;
 
+          parent.replaceChild(view, this.el.panelMessagesContainer.querySelector('#_' + data.id))
         }
-        
+
         if (this.el.panelMessagesContainer.querySelector('#_' + data.id) && me) {
           let msgEl = this.el.panelMessagesContainer.querySelector('#_' + data.id)
 
           msgEl.querySelector('.message-status').innerHTML = message.getStatusViewElement().outerHTML
 
 
+        }
+
+        if (message.type === 'contact') {
+
+          view.querySelector('.btn-message-send').on('click', e => {
+            Chat.createIfNotExists(this._user.email, message.content.email).then(chat => {
+
+              let contact = new User(message.content.email);
+
+              contact.on('datachange', data => {
+                contact.chatId = chat.id;
+
+                this._user.addContact(contact);
+
+                this._user.chatId = chat.id;
+
+                contact.addContact(this._user);
+
+                this.setActiveChat(contact);
+              })
+            })
+
+          })
         }
       })
 
@@ -606,7 +628,7 @@ export class WhatsAppController {
           Message.sendDocument(
             this._contactActive.chatId,
             this._user.email, file, base64, this.el.infoPanelDocumentPreview.innerHTML);
-  
+
         })
       } else {
         Message.sendDocument(

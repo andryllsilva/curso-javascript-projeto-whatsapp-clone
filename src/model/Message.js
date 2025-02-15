@@ -97,11 +97,6 @@ export class Message extends Model {
                 img.show()
             }
 
-            div.querySelector('.btn-message-send').on('click', e => {
-
-                console.log('enviar msg')
-            })
-
                 break;
 
             case 'image':
